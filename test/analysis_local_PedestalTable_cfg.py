@@ -52,7 +52,7 @@ process = cms.Process("ANA")
 # Is this a local run? Or a global run?
 #------------------------------------------------------------------------------------
 
-isLocalRun = False 
+isLocalRun = True 
 isGlobalRun = not isLocalRun
 
 #------------------------------------------------------------------------------------
@@ -161,25 +161,36 @@ process.hcalTupleFEDs.source = cms.untracked.InputTag("source")
 
 # Global Tag
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+#process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v3'
 process.GlobalTag.globaltag = 'GR_P_V50::All'
 
 # for HF uTCA
-mapEnable = True
-if mapEnable:
-	process.es_pool = cms.ESSource("PoolDBESSource",
-		process.CondDBSetup,
-		timetype = cms.string('runnumber'),
-		toGet = cms.VPSet(
-			cms.PSet(
-				record	= cms.string("HcalElectronicsMapRcd"),
-#				tag		= cms.string("HcalElectronicsMap_v7.05_hlt")
-				tag		= cms.string("HcalElectronicsMap_v7.00_offline")
-			)
-		),
-		connect = cms.string('frontier://FrontierProd/CMS_CONDITIONS'),
-		authenticationMethod = cms.untracked.uint32(0)
-	)
-	process.es_prefer_es_pool = cms.ESPrefer("PoolDBESSource", "es_pool" )
+#mapEnable = True
+#if mapEnable:
+#	process.es_pool = cms.ESSource("PoolDBESSource",
+#		process.CondDBSetup,
+#		timetype = cms.string('runnumber'),
+#		toGet = cms.VPSet(
+#			cms.PSet(
+#				record	= cms.string("HcalElectronicsMapRcd"),
+##				tag		= cms.string("HcalElectronicsMap_v7.05_hlt")
+#				tag		= cms.string("HcalElectronicsMap_v7.00_offline")
+#			)
+#		),
+#		connect = cms.string('frontier://FrontierProd/CMS_CONDITIONS'),
+#		authenticationMethod = cms.untracked.uint32(0)
+#	)
+#	process.es_prefer_es_pool = cms.ESPrefer("PoolDBESSource", "es_pool" )
+process.es_ascii = cms.ESSource('HcalTextCalibrations',
+    input = cms.VPSet(
+        cms.PSet(
+            object = cms.string('ElectronicsMap'),
+            file = cms.FileInPath('HCALPFG/HcalTupleMaker/data/2016-feb-24/version_G_emap_all.txt')
+            ),
+        )
+    )
+process.es_prefer = cms.ESPrefer('HcalTextCalibrations','es_ascii')
 
 #------------------------------------------------------------------------------------
 # Define the tuple-making sequence

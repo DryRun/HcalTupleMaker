@@ -70,6 +70,15 @@ class HcalTupleMaker_HcalRecHitAlgorithm {
       // number of HPDs per RBX: 4
       // total number of RBXs in the HB and HE: 72
       // total number of RBXs per subdetector (e.g. HB+, HB-, HE+, HE-): 18
+      if ((hcalDetId.subdet() == HcalBarrel) || (hcalDetId.subdet() == HcalEndcap)) {
+        int RBXIndex = HcalHPDRBXMap::indexRBX(hcalDetId);
+        int HPDIndex = HcalHPDRBXMap::indexHPD(hcalDetId);
+        rbxid -> push_back ( RBXIndex );
+        hpdid -> push_back ( HPDIndex );
+      } else {
+        rbxid->push_back(-1);
+        hpdid->push_back(-1);
+      }
 
       int RBXIndex = HcalHPDRBXMap::indexRBX(hcalDetId);
       int HPDIndex = HcalHPDRBXMap::indexHPD(hcalDetId);
