@@ -6,8 +6,10 @@
 
 #dataset = '/MinimumBias/Commissioning2016-v1/RAW'
 #dataset = '/Cosmics/Commissioning2016-v1/RAW'
-dataset = '/JetHT/Run2016B-v2/RAW'
-runs = '272760,272761,272762,273150,273158,273287,273290,273291,273292,273294,273295,273296,273299'
+#dataset = '/JetHT/Run2016B-v2/RAW'
+dataset = '/JetHT/Run2016B-v1/RAW'
+runs = '272760,272761,272762'
+version = "v1_1"
 #run = '266150'
 #run = '268500'
 
@@ -15,7 +17,7 @@ runs = '272760,272761,272762,273150,273158,273287,273290,273291,273292,273294,27
 
 jobname = "HCALPFG_digis_isobx_"
 jobname += dataset[1:].replace('/','_').replace(':','_')#.replace('RAW','RAW_'+run)
-jobname += "_v1_1"
+jobname += "_" + version
 ##________________________________________________________________________________||
 
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
@@ -40,7 +42,7 @@ config.Data.unitsPerJob = 20
 config.Data.runRange = runs # '193093-194075'
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = True
-config.Data.outputDatasetTag = 'HCALPFG_digis_isobx'
+config.Data.outputDatasetTag = 'HCALPFG_digis_isobx_' + dataset.split("/")[0] + "_" + dataset.split("/")[1] + "_" + version
 
 #config.Site.storageSite = "T3_US_FNALLPC"
 config.Site.storageSite = "T3_US_Brown"
