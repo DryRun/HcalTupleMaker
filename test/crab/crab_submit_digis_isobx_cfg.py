@@ -9,7 +9,7 @@
 #dataset = '/JetHT/Run2016B-v2/RAW'
 dataset = '/JetHT/Run2016B-v1/RAW'
 runs = '272760,272761,272762'
-version = "v1_1"
+version = "v1_1_sub2"
 #run = '266150'
 #run = '268500'
 
@@ -44,5 +44,5 @@ config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = True
 config.Data.outputDatasetTag = 'HCALPFG_digis_isobx_' + dataset.split("/")[0] + "_" + dataset.split("/")[1] + "_" + version
 
-#config.Site.storageSite = "T3_US_FNALLPC"
-config.Site.storageSite = "T3_US_Brown"
+config.Site.storageSite = "T3_US_FNALLPC"
+#config.Site.storageSite = "T3_US_Brown"
