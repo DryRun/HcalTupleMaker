@@ -41,7 +41,7 @@ options.register('doReco',
                  VarParsing.VarParsing.varType.bool,
                  "Run HCAL reconstruction algo?")
 options.register('globalTag',
-    '80X_dataRun2_Prompt_v2',
+    '80X_dataRun2_Prompt_v8',
     VarParsing.VarParsing.multiplicity.singleton,
     VarParsing.VarParsing.varType.string,
     "Global Tag")
