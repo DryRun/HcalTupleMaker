@@ -96,7 +96,15 @@ process.hcalDigis.InputLabel = cms.InputTag("source")
 #------------------------------------------------------------------------------------
 # FED numbers
 #------------------------------------------------------------------------------------
-process.hcalDigis.FEDs = cms.untracked.vint32(1100, 1102, 1104, 1106, 1108, 1110, 1112, 1114, 1116)
+#process.hcalDigis.FEDs = cms.untracked.vint32(1100, 1102, 1104, 1106, 1108, 1110, 1112, 1114, 1116)
+process.hcalDigis.FEDs = cms.untracked.vint32(range( 700 , 718 )) # VME HBHE
+# uTCA HF
+process.hcalDigis.FEDs.append ( 1118 ) 
+process.hcalDigis.FEDs.append ( 1120 ) 
+process.hcalDigis.FEDs.append ( 1122 ) 
+
+for FED in range ( 724, 732 ): # VME HO
+    process.hcalDigis.FEDs.append ( FED ) 
 
 #------------------------------------------------------------------------------------
 # QIE10  Unpacker
