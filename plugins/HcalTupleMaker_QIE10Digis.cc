@@ -75,41 +75,62 @@ HcalTupleMaker_QIE10Digis::HcalTupleMaker_QIE10Digis(const edm::ParameterSet& iC
     
   produces<std::vector<int>   >                  ( "QIE10DigiIEta"      );
   produces<std::vector<int>   >                  ( "QIE10DigiIPhi"      );
+  produces<std::vector<float>   >                  ( "QIE10DigiEta"      );
+  produces<std::vector<float>   >                  ( "QIE10DigiPhi"      );
   produces<std::vector<int>   >                  ( "QIE10DigiSubdet"    );
   produces<std::vector<int>   >                  ( "QIE10DigiDepth"     );
   produces<std::vector<int>   >                  ( "QIE10DigiRawID"     );
   produces<std::vector<int>   >                  ( "QIE10DigiLinkError" );
   produces<std::vector<int>   >                  ( "QIE10DigiFlags"     );
+  produces<std::vector<int>   >                  ( "QIE10DigiNTDC"       );
+  produces<std::vector<double>   >               ( "QIE10DigiTimeFC"     );
+  produces<std::vector<double>   >               ( "QIE10DigiTimeTDC"    );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiSOI"       );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiOK"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiADC"       );
   produces<std::vector<std::vector<double>   > > ( "QIE10DigiFC"        );
-  produces<std::vector<std::vector<int>   > >    ( "QIE10DigiLETDC"     );
-  produces<std::vector<std::vector<int>   > >    ( "QIE10DigiTETDC"     );
+  produces<std::vector<std::vector<double>   > > ( "QIE10DigiPedFC"        );
+  produces<std::vector<std::vector<int>   > >    ( "QIE10DigiTDC"     );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiCapID"     );
+  produces<int>    ( "QIE10DigiPresamples"     );
+  produces<int>    ( "QIE10DigiSize"     );
 }
 
 void HcalTupleMaker_QIE10Digis::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   std::unique_ptr<std::vector<int> >                    ieta   ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    iphi   ( new std::vector<int>   ());
+  std::unique_ptr<std::vector<float> >                  eta   ( new std::vector<float>   ());
+  std::unique_ptr<std::vector<float> >                  phi   ( new std::vector<float>   ());
   std::unique_ptr<std::vector<int> >                    subdet ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    depth  ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    rawId  ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    linkEr ( new std::vector<int>   ());
+  //std::unique_ptr<std::vector<int> >                    capidEr ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    flags  ( new std::vector<int>   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    soi    ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    ok     ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    adc    ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<double  > > > fc     ( new std::vector<std::vector<double  > > ());
-  std::unique_ptr<std::vector<std::vector<int  > > >    le_tdc ( new std::vector<std::vector<int  > >    ());
-  std::unique_ptr<std::vector<std::vector<int  > > >    te_tdc ( new std::vector<std::vector<int  > >    ());
+  std::unique_ptr<std::vector<std::vector<double  > > > pedFC     ( new std::vector<std::vector<double  > > ());
+  std::unique_ptr<std::vector<std::vector<int  > > >    tdc ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<int  > > >    capid  ( new std::vector<std::vector<int  > >    ());
-    
+  std::unique_ptr<int> presamples (new int(0));
+  std::unique_ptr<int> size (new int(0));
+  std::unique_ptr<std::vector<int> >                    ntdc    ( new std::vector<int>   ());
+  std::unique_ptr<std::vector<double> >                 timetdc ( new std::vector<double>   ());
+  std::unique_ptr<std::vector<double> >                 timefc  ( new std::vector<double>   ());
+
   //
   edm::Handle<QIE10DigiCollection>  qie10Digis;
   iEvent.getByToken(qie10digisToken_, qie10Digis);
-    
+
+  edm::ESHandle<CaloGeometry> geometry;
+  iSetup.get<CaloGeometryRecord>().get(geometry);
+
+  edm::ESHandle<HcalDbService> conditions;
+  iSetup.get<HcalDbRecord >().get(conditions);
+
   //
   for (uint32_t i=0; i<qie10Digis->size(); i++){
 
@@ -119,14 +140,28 @@ void HcalTupleMaker_QIE10Digis::produce(edm::Event& iEvent, const edm::EventSetu
     //Extract info on detector location
     DetId detid = qie10df.detid();
     HcalDetId hcaldetid = HcalDetId(detid);
-        
-    ieta   -> push_back ( hcaldetid.ieta()        );
-    iphi   -> push_back ( hcaldetid.iphi()        );
+    if (hcaldetid.subdet() != HcalForward) {
+      continue;
+    }
+
+    if (!(*size)) {
+      (*presamples) = qie10df.presamples();
+      (*size) = qie10df.samples();
+      std::cout << "[debug] Set size (" << size.get() << ") to " << (*size) << std::endl;
+    }
+
+    const GlobalPoint& position = geometry->getPosition(hcaldetid);
+
+    ieta   -> push_back ( hcaldetid.ieta());
+    iphi   -> push_back ( hcaldetid.iphi());
+    eta    -> push_back ( position.eta());
+    phi    -> push_back ( position.phi());
     subdet -> push_back ( 5/*hcaldetid.subdet()*/ );
-    depth  -> push_back ( hcaldetid.depth()       );
-    rawId  -> push_back ( hcaldetid.rawId()       );
-    linkEr -> push_back ( qie10df.linkError()     );
-    flags  -> push_back ( qie10df.flags()         );
+    depth  -> push_back ( hcaldetid.depth());
+    rawId  -> push_back ( hcaldetid.rawId());
+    linkEr -> push_back ( qie10df.linkError());
+    //capidEr -> push_back ( qie10df.capidError()    );
+    flags  -> push_back ( qie10df.flags());
     
     if (0){
       std::cout << "Printing raw dataframe" << std::endl;
@@ -140,45 +175,81 @@ void HcalTupleMaker_QIE10Digis::produce(edm::Event& iEvent, const edm::EventSetu
     ok              -> push_back ( std::vector<int  >   () ) ;
     adc             -> push_back ( std::vector<int  >   () ) ;
     fc              -> push_back ( std::vector<double  >() ) ;
-    le_tdc          -> push_back ( std::vector<int  >   () ) ;
-    te_tdc          -> push_back ( std::vector<int  >   () ) ;
+    pedFC           -> push_back( std::vector<double>());
+    tdc             -> push_back ( std::vector<int  >   () ) ;
     capid           -> push_back ( std::vector<int  >   () ) ;
     size_t last_entry = adc -> size() - 1;
 
+    CaloSamples tool;
+    const HcalQIECoder* channelCoder = conditions->getHcalCoder(detid);
+    const HcalQIEShape* shape = conditions->getHcalShape(channelCoder);
+    const HcalCalibrations* calibrations = const_cast<HcalCalibrations*> (& conditions->getHcalCalibrations (hcaldetid));
+    HcalCoderDb coder(*channelCoder, *shape);
+    coder.adc2fC(qie10df, tool);
+
     // TS
     int nTS = qie10df.samples();
+
+    int nTDC=0;
+    double timeTDC=0;
+    int    firstTDC=-999;
+    double timeFC=0;
+    double totalFC=0;
 
     for(int its=0; its<nTS; ++its)
     { 
       //int adc = qie10df[its].adc();
       //int capid = qie10df[its].capid();
 
-      (*soi      )[last_entry].push_back ( qie10df[its].soi()               ); // soi is a bool, but stored as an int
-      (*ok       )[last_entry].push_back ( qie10df[its].ok()                ); // ok is a bool, but stored as an int
-      (*adc      )[last_entry].push_back ( qie10df[its].adc()               );
-      (*fc       )[last_entry].push_back ( adc2fC_QIE10[qie10df[its].adc()] );
-      (*le_tdc   )[last_entry].push_back ( qie10df[its].le_tdc()            );
-      (*te_tdc   )[last_entry].push_back ( qie10df[its].te_tdc()            );
-      (*capid    )[last_entry].push_back ( qie10df[its].capid()             );
+      (*soi  )[last_entry].push_back ( qie10df[its].soi()   ); // soi is a bool, but stored as an int
+      (*ok   )[last_entry].push_back ( qie10df[its].ok()    ); // ok is a bool, but stored as an int
+      (*adc  )[last_entry].push_back ( qie10df[its].adc()   );
+      (*fc   )[last_entry].push_back ( tool[its] - calibrations->pedestal( qie10df[its].capid()));
+      (*pedFC)[last_entry].push_back ( calibrations -> pedestal     ( qie10df[its].capid()));
+      (*tdc  )[last_entry].push_back ( qie10df[its].le_tdc());
+      (*capid)[last_entry].push_back ( qie10df[its].capid() );
 	  
+      if(qie10df[its].le_tdc()<50) nTDC++;
+      timeFC = timeFC + tool[its]*its*25;  
+      totalFC = totalFC + tool[its]; 
+
+      if(firstTDC>-999) continue;
+      if(qie10df[its].le_tdc()>=50) continue;
+      firstTDC=its;
     }
+    timeFC = timeFC / totalFC;
+    //std::cout << nTDC << " " << timeFC << " " << timeTDC << " " << firstTDC << std::endl; // FIXME 
+    if(firstTDC==-999) timeTDC = -999;
+    else timeTDC = 0.5*qie10df[firstTDC].le_tdc()+firstTDC*25.;
+
+    ntdc   -> push_back ( nTDC         );
+    timefc -> push_back ( timeFC       );
+    timetdc-> push_back ( timeTDC      );
 
   }
 
   //  
   iEvent.put(move( ieta  )        , "QIE10DigiIEta"      );
   iEvent.put(move( iphi  )        , "QIE10DigiIPhi"      );
+  iEvent.put(move( eta  )         , "QIE10DigiEta"      );
+  iEvent.put(move( phi  )         , "QIE10DigiPhi"      );
   iEvent.put(move( subdet)        , "QIE10DigiSubdet"    );
   iEvent.put(move( depth )        , "QIE10DigiDepth"     );
   iEvent.put(move( rawId )        , "QIE10DigiRawID"     );
   iEvent.put(move( linkEr)        , "QIE10DigiLinkError" );
+  //iEvent.put(move( capidEr)       , "QIE11DigiCapIDError");
   iEvent.put(move( flags )        , "QIE10DigiFlags"     );
   iEvent.put(move( soi   )        , "QIE10DigiSOI"       );
   iEvent.put(move( ok    )        , "QIE10DigiOK"        );
   iEvent.put(move( adc   )        , "QIE10DigiADC"       );
   iEvent.put(move( fc    )        , "QIE10DigiFC"        );
-  iEvent.put(move( le_tdc)        , "QIE10DigiLETDC"     );
-  iEvent.put(move( te_tdc)        , "QIE10DigiTETDC"     );
+  iEvent.put(move( pedFC    )        , "QIE10DigiPedFC"        );
+  iEvent.put(move( tdc)           , "QIE10DigiTDC"     );
   iEvent.put(move( capid )        , "QIE10DigiCapID"     );
+  iEvent.put(move( presamples  )      , "QIE10DigiPresamples"     );
+  iEvent.put(move( size  )       , "QIE10DigiSize"     );
+  iEvent.put(move( ntdc   )       , "QIE10DigiNTDC"      );
+  iEvent.put(move( timefc )       , "QIE10DigiTimeFC"    );
+  iEvent.put(move( timetdc)       , "QIE10DigiTimeTDC"   );
 
 }

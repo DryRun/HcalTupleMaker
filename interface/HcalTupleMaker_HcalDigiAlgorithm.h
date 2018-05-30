@@ -37,8 +37,8 @@ class HcalTupleMaker_HcalDigiAlgorithm {
     std::unique_ptr<std::vector<float> > phi;
     std::unique_ptr<std::vector<int> > subdet;
     std::unique_ptr<std::vector<int> > depth;
-    std::unique_ptr<std::vector<int> > presamples;
-    std::unique_ptr<std::vector<int> > size;
+    std::unique_ptr<int> presamples;
+    std::unique_ptr<int> size;
     std::unique_ptr<std::vector<int> > fiberIdleOffset;
     std::unique_ptr<std::vector<int> > electronicsId;
     std::unique_ptr<std::vector<int> > rawId;
@@ -92,7 +92,8 @@ class HcalTupleMaker_HcalDigiAlgorithm {
         HcalQIECoder      * channelCoder = 0;
         HcalCalibrations  * calibrations = 0;
         HcalQIEShape      * shape        = 0;
-
+        (*presamples) = 0;
+        (*size) = 0;
 
         CaloSamples tool;
         //    IntegerCaloSamples itool;
@@ -185,8 +186,10 @@ class HcalTupleMaker_HcalDigiAlgorithm {
           iphi            -> push_back ( hcalDetIdW -> iphi           () );
           depth           -> push_back ( hcalDetIdW -> depth          () );
           subdet          -> push_back ( hcalDetIdW -> subdet         () );
-          presamples      -> push_back ( digi      -> presamples      () );
-          size            -> push_back ( digi      -> size            () );
+          if ((*presamples) == 0) {
+            (*presamples) = digi->presamples();
+            (*size) = digi->size();
+          }
           fiberIdleOffset -> push_back ( digi      -> fiberIdleOffset () );
           electronicsId   -> push_back ( digi -> elecId().rawId() );
           rawId           -> push_back ( hcalDetIdW -> rawId() );

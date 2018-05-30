@@ -98,6 +98,8 @@ HcalTupleMaker_QIE11Digis::HcalTupleMaker_QIE11Digis(const edm::ParameterSet& iC
 
   produces<std::vector<int>   >                  ( "QIE11DigiIEta"       );
   produces<std::vector<int>   >                  ( "QIE11DigiIPhi"       );
+  produces<std::vector<float>   >                  ( "QIE11DigiEta"       );
+  produces<std::vector<float>   >                  ( "QIE11DigiPhi"       );
   produces<std::vector<int>   >                  ( "QIE11DigiSubdet"     );
   produces<std::vector<int>   >                  ( "QIE11DigiDepth"      );
   produces<std::vector<int>   >                  ( "QIE11DigiRawID"      );
@@ -110,15 +112,20 @@ HcalTupleMaker_QIE11Digis::HcalTupleMaker_QIE11Digis(const edm::ParameterSet& iC
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiSOI"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiADC"        );
   produces<std::vector<std::vector<double>   > > ( "QIE11DigiFC"         );
+  produces<std::vector<std::vector<double>   > > ( "QIE11DigiPedFC"         );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiTDC"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiCapID"      );
   produces <int>                                 ( "laserType"           );
+  produces<int>    ( "QIE11DigiPresamples"     );
+  produces<int>    ( "QIE11DigiSize"     );
 }
 
 void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   std::unique_ptr<std::vector<int> >                    ieta    ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    iphi    ( new std::vector<int>   ());
+  std::unique_ptr<std::vector<float> >                  eta    ( new std::vector<float>   ());
+  std::unique_ptr<std::vector<float> >                  phi    ( new std::vector<float>   ());
   std::unique_ptr<std::vector<int> >                    subdet  ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    depth   ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    rawId   ( new std::vector<int>   ());
@@ -132,14 +139,20 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
   std::unique_ptr<std::vector<std::vector<int  > > >    soi     ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    adc     ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<double  > > > fc      ( new std::vector<std::vector<double  > > ());
+  std::unique_ptr<std::vector<std::vector<double  > > > pedFC      ( new std::vector<std::vector<double  > > ());
   std::unique_ptr<std::vector<std::vector<int  > > >    tdc     ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<int  > > >    capid   ( new std::vector<std::vector<int  > >    ());
+  std::unique_ptr<int> presamples (new int(0));
+  std::unique_ptr<int> size (new int(0));
 
   bool use_event = true;
 
   // conditions
   edm::ESHandle<HcalDbService> conditions;
   iSetup.get<HcalDbRecord >().get(conditions);
+
+  edm::ESHandle<CaloGeometry> geometry;
+  iSetup.get<CaloGeometryRecord>().get(geometry);
 
   // QIE11 data frame
   edm::Handle<HcalDataFrameContainer<QIE11DataFrame> >  qie11Digis;
@@ -176,12 +189,22 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
       // Extract info on detector location
       DetId detid = qie11df.detid();
       HcalDetId hcaldetid = HcalDetId(detid);
-      
-      if(hcaldetid.subdet()>4) continue; // FIXME
+      const GlobalPoint& position = geometry->getPosition(hcaldetid);
+
+      if (hcaldetid.subdet() != HcalEndcap) {
+        continue;
+      }
+
+    if (!(*size)) {
+      (*presamples) = qie11df.presamples();
+      (*size) = qie11df.samples();
+    }
 
       ieta    -> push_back ( hcaldetid.ieta()        );
       iphi    -> push_back ( hcaldetid.iphi()        );
-      subdet  -> push_back ( 8/*hcaldetid.subdet()*/ );
+      eta    -> push_back ( position.eta()        );
+      phi    -> push_back ( position.phi()        );
+      subdet  -> push_back ( hcaldetid.subdet() );
       depth   -> push_back ( hcaldetid.depth()       );
       rawId   -> push_back ( hcaldetid.rawId()       );
       linkEr  -> push_back ( qie11df.linkError()     );
@@ -198,6 +221,7 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
       soi   -> push_back ( std::vector<int  >   () ) ;
       adc   -> push_back ( std::vector<int  >   () ) ;
       fc    -> push_back ( std::vector<double  >() ) ;
+      pedFC -> push_back ( std::vector<double  >() ) ;
       tdc   -> push_back ( std::vector<int  >   () ) ;
       capid -> push_back ( std::vector<int  >   () ) ;
       size_t last_entry = adc -> size() - 1;
@@ -206,6 +230,7 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
       CaloSamples tool;
       const HcalQIECoder* channelCoder = conditions->getHcalCoder(detid);
       const HcalQIEShape* shape = conditions->getHcalShape(channelCoder);
+      const HcalCalibrations* calibrations = const_cast<HcalCalibrations*> (& conditions->getHcalCalibrations (hcaldetid));
       HcalCoderDb coder(*channelCoder, *shape);
       coder.adc2fC(qie11df, tool);
       // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -225,7 +250,8 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
         (*soi  )[last_entry].push_back ( qie11df[its].soi()               ); // soi is a bool, but stored as an int
         (*adc  )[last_entry].push_back ( qie11df[its].adc()               );
         //(*fc   )[last_entry].push_back ( adc2fC_QIE11[qie11df[its].adc()] );
-        (*fc   )[last_entry].push_back ( tool[its] );
+        (*fc   )[last_entry].push_back ( tool[its] - calibrations->pedestal( qie11df[its].capid()));
+        (*pedFC)[last_entry].push_back ( calibrations -> pedestal(qie11df[its].capid()));
         (*tdc  )[last_entry].push_back ( qie11df[its].tdc()               );
         (*capid)[last_entry].push_back ( qie11df[its].capid()             );	
 /* // FIXME 
@@ -260,6 +286,8 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
 
     iEvent.put(move( ieta   )       , "QIE11DigiIEta"      );
     iEvent.put(move( iphi   )       , "QIE11DigiIPhi"      );
+    iEvent.put(move( eta   )       , "QIE11DigiEta"      );
+    iEvent.put(move( phi   )       , "QIE11DigiPhi"      );
     iEvent.put(move( subdet )       , "QIE11DigiSubdet"    );
     iEvent.put(move( depth  )       , "QIE11DigiDepth"     );
     iEvent.put(move( rawId  )       , "QIE11DigiRawID"     );
@@ -272,7 +300,10 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
     iEvent.put(move( soi    )       , "QIE11DigiSOI"       );
     iEvent.put(move( adc    )       , "QIE11DigiADC"       );
     iEvent.put(move( fc     )       , "QIE11DigiFC"        );
+    iEvent.put(move( pedFC  )       , "QIE11DigiPedFC"        );
     iEvent.put(move( tdc    )       , "QIE11DigiTDC"       );
     iEvent.put(move( capid  )       , "QIE11DigiCapID"     );
+    iEvent.put(move( presamples  )       , "QIE11DigiPresamples"     );
+    iEvent.put(move( size  )       , "QIE11DigiSize"     );
   }
 }

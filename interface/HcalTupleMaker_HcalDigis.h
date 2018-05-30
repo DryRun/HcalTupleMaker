@@ -107,8 +107,8 @@ public:
       produces<std::vector<float> >               ( m_prefix + "Phi"             + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "Subdet"          + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "Depth"           + m_suffix );
-      produces<std::vector<int>   >               ( m_prefix + "Presamples"      + m_suffix );
-      produces<std::vector<int>   >               ( m_prefix + "Size"            + m_suffix );
+      produces<int>               ( m_prefix + "Presamples"      + m_suffix );
+      produces<int>               ( m_prefix + "Size"            + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "FiberIdleOffset" + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "ElectronicsID"   + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "RawID"           + m_suffix );
@@ -152,8 +152,8 @@ protected:
     algo.phi             = std::unique_ptr<std::vector<float> >               ( new std::vector<float> ());
     algo.depth           = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
     algo.subdet          = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
-    algo.presamples      = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
-    algo.size            = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
+    algo.presamples      = std::unique_ptr<int>                 ( new int(0));
+    algo.size            = std::unique_ptr<int>                 ( new int(0));
     algo.fiberIdleOffset = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
     algo.electronicsId   = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
     algo.rawId           = std::unique_ptr<std::vector<int> >                 ( new std::vector<int>   ());
