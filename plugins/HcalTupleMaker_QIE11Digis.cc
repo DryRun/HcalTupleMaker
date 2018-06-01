@@ -107,12 +107,12 @@ HcalTupleMaker_QIE11Digis::HcalTupleMaker_QIE11Digis(const edm::ParameterSet& iC
   produces<std::vector<int>   >                  ( "QIE11DigiCapIDError" );
   produces<std::vector<int>   >                  ( "QIE11DigiFlags"      );
   produces<std::vector<int>   >                  ( "QIE11DigiNTDC"       );
-  produces<std::vector<double>   >               ( "QIE11DigiTimeFC"     );
-  produces<std::vector<double>   >               ( "QIE11DigiTimeTDC"    );
+  produces<std::vector<float>   >               ( "QIE11DigiTimeFC"     );
+  produces<std::vector<float>   >               ( "QIE11DigiTimeTDC"    );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiSOI"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiADC"        );
-  produces<std::vector<std::vector<double>   > > ( "QIE11DigiFC"         );
-  produces<std::vector<std::vector<double>   > > ( "QIE11DigiPedFC"         );
+  produces<std::vector<std::vector<float>   > > ( "QIE11DigiFC"         );
+  produces<std::vector<std::vector<float>   > > ( "QIE11DigiPedFC"         );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiTDC"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE11DigiCapID"      );
   produces <int>                                 ( "laserType"           );
@@ -133,13 +133,13 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
   std::unique_ptr<std::vector<int> >                    capidEr ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    flags   ( new std::vector<int>   ());
   std::unique_ptr<std::vector<int> >                    ntdc    ( new std::vector<int>   ());
-  std::unique_ptr<std::vector<double> >                 timetdc ( new std::vector<double>   ());
-  std::unique_ptr<std::vector<double> >                 timefc  ( new std::vector<double>   ());
+  std::unique_ptr<std::vector<float> >                 timetdc ( new std::vector<float>   ());
+  std::unique_ptr<std::vector<float> >                 timefc  ( new std::vector<float>   ());
   // std::unique_ptr<int>                                  lasertype (new int() );
   std::unique_ptr<std::vector<std::vector<int  > > >    soi     ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    adc     ( new std::vector<std::vector<int  > >    ());
-  std::unique_ptr<std::vector<std::vector<double  > > > fc      ( new std::vector<std::vector<double  > > ());
-  std::unique_ptr<std::vector<std::vector<double  > > > pedFC      ( new std::vector<std::vector<double  > > ());
+  std::unique_ptr<std::vector<std::vector<float  > > > fc      ( new std::vector<std::vector<float  > > ());
+  std::unique_ptr<std::vector<std::vector<float  > > > pedFC      ( new std::vector<std::vector<float  > > ());
   std::unique_ptr<std::vector<std::vector<int  > > >    tdc     ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<int  > > >    capid   ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<int> presamples (new int(0));
@@ -220,8 +220,8 @@ void HcalTupleMaker_QIE11Digis::produce(edm::Event& iEvent, const edm::EventSetu
 
       soi   -> push_back ( std::vector<int  >   () ) ;
       adc   -> push_back ( std::vector<int  >   () ) ;
-      fc    -> push_back ( std::vector<double  >() ) ;
-      pedFC -> push_back ( std::vector<double  >() ) ;
+      fc    -> push_back ( std::vector<float  >() ) ;
+      pedFC -> push_back ( std::vector<float  >() ) ;
       tdc   -> push_back ( std::vector<int  >   () ) ;
       capid -> push_back ( std::vector<int  >   () ) ;
       size_t last_entry = adc -> size() - 1;

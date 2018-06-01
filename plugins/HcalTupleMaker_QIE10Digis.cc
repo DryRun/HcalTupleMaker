@@ -83,13 +83,13 @@ HcalTupleMaker_QIE10Digis::HcalTupleMaker_QIE10Digis(const edm::ParameterSet& iC
   produces<std::vector<int>   >                  ( "QIE10DigiLinkError" );
   produces<std::vector<int>   >                  ( "QIE10DigiFlags"     );
   produces<std::vector<int>   >                  ( "QIE10DigiNTDC"       );
-  produces<std::vector<double>   >               ( "QIE10DigiTimeFC"     );
-  produces<std::vector<double>   >               ( "QIE10DigiTimeTDC"    );
+  produces<std::vector<float>   >               ( "QIE10DigiTimeFC"     );
+  produces<std::vector<float>   >               ( "QIE10DigiTimeTDC"    );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiSOI"       );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiOK"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiADC"       );
-  produces<std::vector<std::vector<double>   > > ( "QIE10DigiFC"        );
-  produces<std::vector<std::vector<double>   > > ( "QIE10DigiPedFC"        );
+  produces<std::vector<std::vector<float>   > > ( "QIE10DigiFC"        );
+  produces<std::vector<std::vector<float>   > > ( "QIE10DigiPedFC"        );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiTDC"     );
   produces<std::vector<std::vector<int>   > >    ( "QIE10DigiCapID"     );
   produces<int>    ( "QIE10DigiPresamples"     );
@@ -111,15 +111,15 @@ void HcalTupleMaker_QIE10Digis::produce(edm::Event& iEvent, const edm::EventSetu
   std::unique_ptr<std::vector<std::vector<int  > > >    soi    ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    ok     ( new std::vector<std::vector<int  > >   ());
   std::unique_ptr<std::vector<std::vector<int  > > >    adc    ( new std::vector<std::vector<int  > >    ());
-  std::unique_ptr<std::vector<std::vector<double  > > > fc     ( new std::vector<std::vector<double  > > ());
-  std::unique_ptr<std::vector<std::vector<double  > > > pedFC     ( new std::vector<std::vector<double  > > ());
+  std::unique_ptr<std::vector<std::vector<float  > > > fc     ( new std::vector<std::vector<float  > > ());
+  std::unique_ptr<std::vector<std::vector<float  > > > pedFC     ( new std::vector<std::vector<float  > > ());
   std::unique_ptr<std::vector<std::vector<int  > > >    tdc ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<std::vector<std::vector<int  > > >    capid  ( new std::vector<std::vector<int  > >    ());
   std::unique_ptr<int> presamples (new int(0));
   std::unique_ptr<int> size (new int(0));
   std::unique_ptr<std::vector<int> >                    ntdc    ( new std::vector<int>   ());
-  std::unique_ptr<std::vector<double> >                 timetdc ( new std::vector<double>   ());
-  std::unique_ptr<std::vector<double> >                 timefc  ( new std::vector<double>   ());
+  std::unique_ptr<std::vector<float> >                 timetdc ( new std::vector<float>   ());
+  std::unique_ptr<std::vector<float> >                 timefc  ( new std::vector<float>   ());
 
   //
   edm::Handle<QIE10DigiCollection>  qie10Digis;
@@ -174,8 +174,8 @@ void HcalTupleMaker_QIE10Digis::produce(edm::Event& iEvent, const edm::EventSetu
     soi             -> push_back ( std::vector<int  >   () ) ;
     ok              -> push_back ( std::vector<int  >   () ) ;
     adc             -> push_back ( std::vector<int  >   () ) ;
-    fc              -> push_back ( std::vector<double  >() ) ;
-    pedFC           -> push_back( std::vector<double>());
+    fc              -> push_back ( std::vector<float  >() ) ;
+    pedFC           -> push_back( std::vector<float>());
     tdc             -> push_back ( std::vector<int  >   () ) ;
     capid           -> push_back ( std::vector<int  >   () ) ;
     size_t last_entry = adc -> size() - 1;
