@@ -101,6 +101,8 @@ process.hcalTupleHBHEDigis.DoEnergyReco = True
 process.hcalTupleHFDigis.DoEnergyReco = False
 process.hcalTupleHFDigis.FilterChannels = False
 
+process.hcalTupleHBHEDigis.recHits = cms.untracked.InputTag("hbheprereco")
+
 #------------------------------------------------------------------------------------
 #process.hcalDigis.saveQIE10DataNSamples = cms.untracked.vint32( 6)
 #process.hcalDigis.saveQIE10DataTags = cms.untracked.vstring( "MYDATA" )
